@@ -801,33 +801,39 @@ namespace DG.Tweening.Core
 
         static void ReorganizeActiveTweens()
         {
-            if (totActiveTweens <= 0) {
-                _maxActiveLookupId = -1;
-                _requiresActiveReorganization = false;
-                _reorganizeFromId = -1;
-                return;
-            } else if (_reorganizeFromId == _maxActiveLookupId) {
-                _maxActiveLookupId--;
-                _requiresActiveReorganization = false;
-                _reorganizeFromId = -1;
-                return;
-            }
-
-            int shift = 1;
-            int len = _maxActiveLookupId + 1;
-            _maxActiveLookupId = _reorganizeFromId - 1;
-            for (int i = _reorganizeFromId + 1; i < len; ++i) {
-                Tween t = _activeTweens[i];
-                if (t == null) {
-                    shift++;
-                    continue;
+            try {
+                if (totActiveTweens <= 0) {
+                    _maxActiveLookupId = -1;
+                    _requiresActiveReorganization = false;
+                    _reorganizeFromId = -1;
+                    return;
                 }
-                t.activeId = _maxActiveLookupId = i - shift;
-                _activeTweens[i - shift] = t;
-                _activeTweens[i] = null;
+                else if (_reorganizeFromId == _maxActiveLookupId) {
+                    _maxActiveLookupId--;
+                    _requiresActiveReorganization = false;
+                    _reorganizeFromId = -1;
+                    return;
+                }
+
+                int shift = 1;
+                int len = _maxActiveLookupId + 1;
+                _maxActiveLookupId = _reorganizeFromId - 1;
+                for (int i = _reorganizeFromId + 1; i < len; ++i) {
+                    Tween t = _activeTweens[i];
+                    if (t == null) {
+                        shift++;
+                        continue;
+                    }
+                    t.activeId = _maxActiveLookupId = i - shift;
+                    _activeTweens[i - shift] = t;
+                    _activeTweens[i] = null;
+                }
+                _requiresActiveReorganization = false;
+                _reorganizeFromId = -1;
             }
-            _requiresActiveReorganization = false;
-            _reorganizeFromId = -1;
+            catch (Exception e) {
+                Debug.LogWarning(e);
+            }
         }
 
         static void DespawnTweens(List<Tween> tweens, bool modifyActiveLists = true)
@@ -840,50 +846,60 @@ namespace DG.Tweening.Core
         // and decreases the given total
         static void RemoveActiveTween(Tween t)
         {
-            int index = t.activeId;
+            try {
+                int index = t.activeId;
 
-            t.activeId = -1;
-            _requiresActiveReorganization = true;
-            if (_reorganizeFromId == -1 || _reorganizeFromId > index) _reorganizeFromId = index;
-            _activeTweens[index] = null;
+                t.activeId = -1;
+                _requiresActiveReorganization = true;
+                if (_reorganizeFromId == -1 || _reorganizeFromId > index) _reorganizeFromId = index;
+                _activeTweens[index] = null;
 
-            if (t.updateType == UpdateType.Normal) {
-                if (totActiveDefaultTweens > 0) {
-                    totActiveDefaultTweens--;
-                    hasActiveDefaultTweens = totActiveDefaultTweens > 0;
-                } else {
-                    Debugger.LogRemoveActiveTweenError("totActiveDefaultTweens");
+                if (t.updateType == UpdateType.Normal) {
+                    if (totActiveDefaultTweens > 0) {
+                        totActiveDefaultTweens--;
+                        hasActiveDefaultTweens = totActiveDefaultTweens > 0;
+                    }
+                    else {
+                        Debugger.LogRemoveActiveTweenError("totActiveDefaultTweens");
+                    }
                 }
-            } else if (t.updateType == UpdateType.Fixed) {
-                if (totActiveFixedTweens > 0) {
-                    totActiveFixedTweens--;
-                    hasActiveFixedTweens = totActiveFixedTweens > 0;
-                } else {
-                    Debugger.LogRemoveActiveTweenError("totActiveFixedTweens");
+                else if (t.updateType == UpdateType.Fixed) {
+                    if (totActiveFixedTweens > 0) {
+                        totActiveFixedTweens--;
+                        hasActiveFixedTweens = totActiveFixedTweens > 0;
+                    }
+                    else {
+                        Debugger.LogRemoveActiveTweenError("totActiveFixedTweens");
+                    }
                 }
-            } else {
-                if (totActiveLateTweens > 0) {
-                    totActiveLateTweens--;
-                    hasActiveLateTweens = totActiveLateTweens > 0;
-                } else {
-                    Debugger.LogRemoveActiveTweenError("totActiveLateTweens");
+                else {
+                    if (totActiveLateTweens > 0) {
+                        totActiveLateTweens--;
+                        hasActiveLateTweens = totActiveLateTweens > 0;
+                    }
+                    else {
+                        Debugger.LogRemoveActiveTweenError("totActiveLateTweens");
+                    }
+                }
+                totActiveTweens--;
+                hasActiveTweens = totActiveTweens > 0;
+                if (t.tweenType == TweenType.Tweener) totActiveTweeners--;
+                else totActiveSequences--;
+                if (totActiveTweens < 0) {
+                    totActiveTweens = 0;
+                    Debugger.LogRemoveActiveTweenError("totActiveTweens");
+                }
+                if (totActiveTweeners < 0) {
+                    totActiveTweeners = 0;
+                    Debugger.LogRemoveActiveTweenError("totActiveTweeners");
+                }
+                if (totActiveSequences < 0) {
+                    totActiveSequences = 0;
+                    Debugger.LogRemoveActiveTweenError("totActiveSequences");
                 }
             }
-            totActiveTweens--;
-            hasActiveTweens = totActiveTweens > 0;
-            if (t.tweenType == TweenType.Tweener) totActiveTweeners--;
-            else totActiveSequences--;
-            if (totActiveTweens < 0) {
-                totActiveTweens = 0;
-                Debugger.LogRemoveActiveTweenError("totActiveTweens");
-            }
-            if (totActiveTweeners < 0) {
-                totActiveTweeners = 0;
-                Debugger.LogRemoveActiveTweenError("totActiveTweeners");
-            }
-            if (totActiveSequences < 0) {
-                totActiveSequences = 0;
-                Debugger.LogRemoveActiveTweenError("totActiveSequences");
+            catch (Exception e) {
+                Debug.LogWarning(e);
             }
         }
 
