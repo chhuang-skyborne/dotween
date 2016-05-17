@@ -833,6 +833,8 @@ namespace DG.Tweening.Core
             }
             catch (Exception e) {
                 Debug.LogWarning(e);
+                _requiresActiveReorganization = false;
+                _reorganizeFromId = -1;
             }
         }
 
