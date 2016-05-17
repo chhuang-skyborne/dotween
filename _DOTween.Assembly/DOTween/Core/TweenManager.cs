@@ -850,6 +850,9 @@ namespace DG.Tweening.Core
         {
             try {
                 int index = t.activeId;
+                if (index == -1) {
+                    return;
+                }
 
                 t.activeId = -1;
                 _requiresActiveReorganization = true;
